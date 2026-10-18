@@ -1,0 +1,23 @@
+# Build output
+build/
+app/build/
+*.apk
+*.idsig
+*.dex
+compiled.zip
+
+# Local signing material — generate your own with keytool
+debug.keystore
+*.jks
+*.keystore
+
+# Internal working notes, not part of the published project
+HANDOFF.md
+FEATURES-PLAN.md
+SCENE-RESEARCH.md
+
+# Editor / OS
+.idea/
+*.iml
+.DS_Store
+*.swp

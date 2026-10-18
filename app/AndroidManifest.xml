@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.adit.pulse"
+    android:versionCode="2"
+    android:versionName="2.0">
+
+    <!-- The overlay is a foreground service so the sampler keeps running while the
+         device sleeps. Without that, Android freezes the process when the screen
+         goes off and the history has a hole exactly where the user looked away. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- The keep-awake switch acquires a partial wake lock. Without this
+         declaration the acquire throws SecurityException and the setting does
+         nothing at all - the sampler is then suspended the moment the screen
+         goes off, which is precisely what the switch exists to prevent. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- mDNS discovery of the device's own wireless-debugging ports. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- The focused app's icon: the package name is known, but resolving it into a
+         drawable still passes through package-visibility filtering on API 30+. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission"
+        xmlns:tools="http://schemas.android.com/tools" />
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:theme="@style/AppTheme"
+        android:allowBackup="false"
+        android:extractNativeLibs="true"
+        android:supportsRtl="true">
+
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:theme="@style/SplashTheme"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTask" />
+
+        <activity
+            android:name=".DetailActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode"
+            android:parentActivityName=".MainActivity" />
+
+        <!-- The toolbox screens. Each is its own activity, reached from the home
+             icons or the tools grid; every one carries a back arrow. -->
+        <activity
+            android:name=".HubActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".RecordingsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode" />
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".AppsActivity"
+            android:exported="false"
+            android:parentActivityName=".HubActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".BatteryActivity"
+            android:exported="false"
+            android:parentActivityName=".HubActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode" />
+        <activity
+            android:name=".ProcessesActivity"
+            android:exported="false"
+            android:parentActivityName=".HubActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".CommandsActivity"
+            android:exported="false"
+            android:parentActivityName=".HubActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".DiagnosticsActivity"
+            android:exported="false"
+            android:parentActivityName=".HubActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".SystemActivity"
+            android:exported="false"
+            android:parentActivityName=".HubActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- specialUse: the app samples device telemetry on a timer and shows it in a
+             user-placed overlay. There is no more specific type for that. -->
+        <service
+            android:name=".OverlayService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Live device telemetry overlay and history sampler" />
+        </service>
+
+        <!-- The reaper behind the reversible freeze. It runs only while an app is
+             frozen, and stopping it (which force-stopping Pulse does) is exactly
+             what releases the freeze. -->
+        <service
+            android:name=".FreezeService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps user-frozen apps stopped while Pulse is running" />
+        </service>
+    </application>
+</manifest>
