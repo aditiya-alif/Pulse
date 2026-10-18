@@ -9,10 +9,16 @@
 # app with no dependencies.
 #
 # Requirements, all discoverable through $PATH or the environment:
-#   aapt2, d8, apksigner, javac, zip   - Android SDK build-tools + a JDK
-#   python3                            - for zipalign.py
-#   an android.jar                     - set ANDROID_JAR if not at the default
-#   a keystore                         - set KEYSTORE (defaults to ./debug.keystore)
+#   aapt2, d8, apksigner, javac   - Android SDK build-tools + a JDK
+#   python3                       - for repack.py and zipalign.py
+#   an android.jar                - set ANDROID_JAR if not at the default
+#   a keystore                    - set KEYSTORE (defaults to ./debug.keystore)
+#
+# Signing credentials come from the environment, never from the repository:
+#   KEYSTORE        path to the keystore
+#   KS_PASS         keystore password   (default "android")
+#   KEY_PASS        key password        (defaults to KS_PASS)
+#   KS_ALIAS        key alias           (default "androiddebugkey")
 #
 # Usage:
 #   ./build_apk.sh [project-dir] [output-dir]
@@ -36,9 +42,26 @@ JAVAC="${JAVAC:-javac}"
 ANDROID_JAR="${ANDROID_JAR:-$ANDROID_HOME/platforms/android.jar}"
 [ -f "$ANDROID_JAR" ] || ANDROID_JAR="$ANDROID_SDK_ROOT/platforms/android.jar"
 KEYSTORE="${KEYSTORE:-$REPO/debug.keystore}"
+KS_PASS="${KS_PASS:-android}"
+KEY_PASS="${KEY_PASS:-$KS_PASS}"
+KS_ALIAS="${KS_ALIAS:-androiddebugkey}"
 
 MIN=26
 TGT=34
+
+# Version overrides. Both are written into the manifest at link time, so a release
+# can be stamped without editing the file by hand:
+#   VERSION_CODE=3 VERSION_NAME=2.1.0 ./build_apk.sh
+VERSION_CODE="${VERSION_CODE:-}"
+VERSION_NAME="${VERSION_NAME:-}"
+VERSION_FLAGS=()
+if [ -n "$VERSION_CODE" ] || [ -n "$VERSION_NAME" ]; then
+  # --replace-version is required: without it aapt2 only injects the version when
+  # the manifest declares none, and this manifest does declare one.
+  VERSION_FLAGS+=(--replace-version)
+  [ -n "$VERSION_CODE" ] && VERSION_FLAGS+=(--version-code "$VERSION_CODE")
+  [ -n "$VERSION_NAME" ] && VERSION_FLAGS+=(--version-name "$VERSION_NAME")
+fi
 
 cd "$PROJ"
 rm -rf "$OUT"
@@ -63,6 +86,7 @@ echo "[2/6] aapt2 link -> base.apk + R.java"
   --min-sdk-version "$MIN" \
   --target-sdk-version "$TGT" \
   --auto-add-overlay \
+  "${VERSION_FLAGS[@]}" \
   "${LINK_RES[@]}"
 
 echo "[3/6] javac (capped heap)"
@@ -108,8 +132,8 @@ python3 "$REPO/zipalign.py" "$OUT/unsigned.apk" "$OUT/aligned.apk"
 
 echo "[6/6] apksigner sign"
 "$APKSIGNER" sign \
-  --ks "$KEYSTORE" --ks-pass "pass:android" --key-pass "pass:android" \
-  --ks-key-alias androiddebugkey \
+  --ks "$KEYSTORE" --ks-pass "pass:$KS_PASS" --key-pass "pass:$KEY_PASS" \
+  --ks-key-alias "$KS_ALIAS" \
   --min-sdk-version "$MIN" \
   --out "$OUT/app-debug.apk" "$OUT/aligned.apk"
 

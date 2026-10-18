@@ -134,12 +134,27 @@ To install:
 adb install -r -d app/build/app-debug.apk
 ```
 
+### Release build
+
+`release.sh` produces a versioned, signed APK in `release/`. Signing credentials
+are read from the environment and never stored in the repository:
+
+```
+KEYSTORE=~/keys/pulse-release.jks KS_PASS=... KS_ALIAS=pulse \
+VERSION_CODE=3 VERSION_NAME=2.0.0 ./release.sh
+```
+
+Output: `release/Pulse-2.0.0.apk`, with its SHA-256 printed.
+
+The keystore is not committed and must not be. Losing it means you can never
+publish an update to the same package again.
+
 If a build is already running on the device, force-stop it first — `install -r`
 replaces the APK but does not restart a running process, so the old code keeps
 executing and the test is misleading:
 
 ```
-adb shell am force-stop com.adit.pulse
+adb shell am force-stop com.aditiyaalif.pulse
 ```
 
 ---
@@ -150,9 +165,10 @@ adb shell am force-stop com.adit.pulse
 app/
   AndroidManifest.xml
   res/                     colours, theme, launcher icon
-  src/com/adit/pulse/      all Java sources, one package
+  src/com/aditiyaalif/pulse/  all Java sources, one package
   jniLibs/lib/arm64-v8a/   the bundled adb client and its dependencies
 build_apk.sh               the whole build
+release.sh                 versioned, signed release APK
 repack.py                  APK assembly
 zipalign.py                entry alignment
 ```

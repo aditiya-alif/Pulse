@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.adit.pulse"
-    android:versionCode="2"
-    android:versionName="2.0">
+    package="com.aditiyaalif.pulse"
+    android:versionCode="3"
+    android:versionName="2.0.0">
 
     <!-- The overlay is a foreground service so the sampler keeps running while the
          device sleeps. Without that, Android freezes the process when the screen
