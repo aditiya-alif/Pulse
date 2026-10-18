@@ -181,4 +181,6 @@ format.
 
 ## Licence
 
-No licence file is included yet. Add one before distributing.
+MIT — see [LICENSE](LICENSE).
+
+Copyright (c) 2026 Aditiya Alif As Siddiq.
